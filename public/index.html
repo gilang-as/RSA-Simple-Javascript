@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+
+
+-->
+	<meta charset="UTF-8">
+	<title>RSA Encrypt Decrypt</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<script LANGUAGE="JavaScript" SRC="scripts/InfoTools.js"></script>
+	<script LANGUAGE="JavaScript" SRC="scripts/CourseConfig.js"></script>
+	<script LANGUAGE="JavaScript" SRC="scripts/LectureConfig.js"></script>
+	<script LANGUAGE="JavaScript" SRC="scripts/Tools.js"></script>
+	<script type="text/javascript">
+// Prime JS
+
+function stripBad(string) {
+    for (var i=0, output='', valid="eE-0123456789."; i<string.length; i++)
+       if (valid.indexOf(string.charAt(i)) != -1)
+          output += string.charAt(i)
+    return output;
+} 
+
+function comma(num) {
+ var n = Math.floor(num);
+ var myNum = num + "";
+ var myDec = ""
+ 
+ if (myNum.indexOf('.',0) > -1){
+  myDec = myNum.substring(myNum.indexOf('.',0),myNum.length);
+ }
+
+  var arr=new Array('0'), i=0; 
+  while (n>0) 
+    {arr[i]=''+n%1000; n=Math.floor(n/1000); i++;}
+  arr=arr.reverse();
+  for (var i in arr) if (i>0) //padding zeros
+    while (arr[i].length<3) arr[i]='0'+arr[i];
+  return arr.join() + myDec;
+}
+
+function isPrime(ptest)
+{
+  if (ptest == 2)
+    return 0;
+
+  if (ptest % 2 == 0)
+  {
+    return 2;
+  }
+
+  var primeFound = true;
+  var maxPrimeSeek = Math.sqrt(ptest)+1;
+
+  for (var i = 3; i <= maxPrimeSeek; i++,i++)
+  {
+    if (!(ptest % i))
+	{
+	  primeFound = false;
+	  break;
+	}
+  }
+  
+  if (primeFound)
+    return 0;
+  else
+    return i;
+}
+
+function calculate(form)
+{
+  var num = parseInt(stripBad(form.number.value));
+  form.number.value = num;
+
+  if (isNaN(num) || num < 2)
+  {
+ //    form.result.value = "Masukan HARUS Bilangan!";
+	// form.result2.value = "";
+	document.getElementById("result").innerHTML = "Masukan harus bilangan!";
+	document.getElementById("result2").innerHTML = "";
+	return;
+  }
+
+  var primeNum = isPrime(num);
+
+  if (primeNum == 0)
+  {
+    // form.result.value = num + " adalah bilangan prima.";
+	// form.result2.value = "";
+	document.getElementById("result").innerHTML = num +" adalah bilangan prima.";
+	document.getElementById("result2").innerHTML = "";
+  }
+  else
+  {
+	document.getElementById("result").innerHTML = comma(num) +" BUKAN bilangan prima.";
+	document.getElementById("result2").innerHTML = "dapat dibagi "+primeNum;
+    // form.result.value = comma(num) + " bukan bilangan prima.";
+	// form.result2.value = "dapat dibagi " + primeNum;
+  }
+
+} 
+// End Prime
+
+<!-- Hide from uneducated browsers
+    //----------------------------------------------------------------------
+    
+        function mod( m, n )
+        {           
+            return m - n*Math.floor(m/n)
+        }
+    
+    //----------------------------------------------------------------------
+    
+        function OldPowerMod(x,n,m)
+        // Compute x^n mod m
+        {
+            var p = 1
+            for ( i=0; i<n; i++ )
+                p = mod( (p*x),m )
+            return p
+        }
+      
+    //----------------------------------------------------------------------
+    
+        function PowerMod(x,p,N)
+        // Compute x^p mod N
+        {
+            var A = 1
+            var m = p
+            var t = x
+            
+            while( m > 0 )
+            {
+                k = Math.floor( m/2 )
+                r = m - 2*k
+                if( r == 1 )
+                    A = mod( A*t, N )
+                t = mod( t*t, N )
+                m = k
+            }           
+            return A
+        }
+      
+    //----------------------------------------------------------------------
+    
+        function Factorize(n)
+        {
+            var temp = ""
+            var T = n
+            var PRIME = 1
+            
+            var i=1
+            while( (T>1) && ( ++i < Math.sqrt(n)+1 ) )
+            {
+                while ( mod(T,i)==0 )
+                {
+                    T = T/i
+                    if( PRIME == 0 ) temp += "*"
+                    if( PRIME == 1 ) PRIME = 0
+                    temp += i
+                }
+            }
+            
+            if( PRIME == 1 ) 
+                temp = " is prime."
+            else if( T>1 )
+                temp += "*" + T
+                
+            return temp
+        }
+        
+    //----------------------------------------------------------------------
+    
+        function GCD(m,n)
+        {
+            while( m != n )
+            {
+                if( m == 1 || n == 1)
+                    return 1
+                else if ( m < n )
+                    n = mod(n,m)
+                else
+                    m = mod(m,n)
+            }   
+            return m
+        }
+        
+    //----------------------------------------------------------------------
+    
+        function Candidates(form)
+        {
+            var temp = ""           // Arithmetic is done with -r rather
+            var r = -form.r.value   // than r since "+" gets interpreted
+            var n = - (r-1)         // as a string operator, not arithmetic.
+            var line = ""
+            
+            for( i=0; i<30; i++ )
+            {
+                if (line.length > 50)
+                {
+                    temp += line + "\n"
+                    line = ""
+                }
+                line += n + " "
+                n = n - r
+            }
+            
+            return temp + line
+        }
+
+    //----------------------------------------------------------------------
+    
+        function ComputeNq(form)
+        {
+            var p = form.p.value
+            var q = form.q.value
+            form.N.value = p*q
+            form.r.value = (p-1)*(q-1)
+            form.ed.value = Candidates(form)
+            return ""
+        }
+
+    //----------------------------------------------------------------------
+    
+        function ComputeEZ(form)
+        {
+            form.factors.value = Factorize(form.K.value)
+            return ""
+        }
+
+    //----------------------------------------------------------------------
+    
+        function CheckED(form)
+        {
+            var temp = ""
+            var e = form.e.value
+            var d = form.d.value
+            var r = form.r.value
+            var N = form.N.value
+            
+            temp += "      e   = " + e + "\n"
+            temp += "      d   = " + d + "\n"
+            temp += "      N   = " + N + "\n"
+            temp += "      r   = " + r + "\n"
+            temp += "      e*d = " + eval(e*d) + "\n"
+            temp += "e*d mod r = " + mod((e*d),r) + "\n"
+
+            if( GCD(e,r) == 1 ) 
+                temp += "e and r are relatively prime\n"
+            else
+                temp += "e and r are not relatively prime; gcd(e,r) = " + GCD(e,r) + "\n"
+
+            if( GCD(d,r) == 1 ) 
+                temp += "d and r are relatively prime\n"
+            else
+                temp += "d and r are not relatively prime; gcd(d,r) = " + GCD(d,r) + "\n"
+
+            form.checker.value = temp
+            return ""
+        }
+
+        function CheckCode(form)
+        {
+            var temp = ""
+            var e = form.e.value
+            var d = form.d.value
+            var N = form.N.value
+            var M = form.Msg.value
+
+            form.Cipher.value = PowerMod(M,e,N)
+            
+            var C = form.Cipher.value
+            form.Decipher.value = PowerMod(C,d,N)
+
+            return ""
+        }
+
+    // end hiding from uneducated browsers -->
+
+
+
+    //Enkrip deskrip here
+    <!-- Hide from uneducated browsers
+	//----------------------------------------------------------------------
+	function maxint()
+		{
+			var bits=1
+			var prev=0
+			var sumM1=1
+			var sum=2
+	
+			while( parseInt(sumM1) < parseInt(sum) ) {
+			   bits++
+			   prev = sum
+			   sumM1 = parseInt(sumM1 + sum)
+			   sum = parseInt(sumM1+1)
+			}
+			return parseInt(prev-1)
+		}
+
+	//----------------------------------------------------------------------
+	
+		function HexDigit( n )
+		{
+			var equiv = new Array("A","B","C","D","E","F")
+			
+			if (n<10) 
+				return n
+			else if (n<16)
+				return equiv[n-10]
+			else
+				return ""
+		}
+	
+	//----------------------------------------------------------------------
+	
+		function Hex( n )
+		{			
+			var digit = Math.floor(n/16)
+			
+			if ( digit == 0 )
+				return "%" + HexDigit( n )
+			else
+				return Hex(digit) + "" + HexDigit( n - digit*16 )
+		}
+	
+	//----------------------------------------------------------------------
+	  
+	var MAX_INT = maxint()
+
+	//----------------------------------------------------------------------
+	
+	function PowerMod(x,p,N)
+		// Compute x^p mod N
+		{
+			var A = 1
+			var m = p
+			var t = x
+			
+			while( m > 0 )
+			{
+				k = Math.floor( m/2 )
+				r = m - 2*k
+				if( r == 1 )
+					A = (A*t) % N
+				t = (t*t) % N 
+				m = k
+			}			
+			return A
+		}
+	  
+	//----------------------------------------------------------------------
+	
+		function Factorize(n)
+		{
+			var temp = ""
+			var T = n
+			var PRIME = 1
+			
+			if( n>MAX_INT )
+				return "too large."
+			
+			var i=1
+			while( (T>1) && ( ++i <= Math.sqrt(n) ) )
+			{
+				while ( T%i == 0 )
+				{
+					T = T/i
+					if( PRIME == 0 ) temp += "*"
+					if( PRIME == 1 ) PRIME = 0
+					temp += i
+				}
+			}
+			
+			if( PRIME == 1 ) 
+				temp = "a prime number."
+			else if( T>1 )
+				temp += "*" + T
+				
+			return temp
+		}
+		
+	//----------------------------------------------------------------------
+	
+		function GCD(m,n)
+		{
+			while( m != n )
+			{
+				if( m == 1 || n == 1)
+					return 1
+				else if ( m < n )
+					n = n % m
+				else
+					m = m % n
+			}	
+			return m
+		}
+		
+	//----------------------------------------------------------------------
+	
+		function Candidates(form)
+		{
+			var temp = ""           
+			var r = form.r.value
+			var n = parseInt(r)+1
+			var line = ""
+			var i = 0
+			
+			while( i<30 && n<MAX_INT  )
+			{
+				if (line.length > 50)
+				{
+					temp += line + "\n"
+					line = ""
+				}
+				line += n + " "
+				n = parseInt(n) + parseInt(r)
+				i++
+			}
+			
+			return temp + line
+		}
+
+	//----------------------------------------------------------------------
+	
+		function ComputeNr(form)
+		{
+			var p = form.p.value
+			var q = form.q.value
+			form.N.value = p*q
+			form.r.value = (p-1)*(q-1)
+			form.pq.value = "p = " + Factorize(p) + "\nq = " + Factorize(q)
+			form.ed.value = Candidates(form)
+			return ""
+		}
+
+	//----------------------------------------------------------------------
+	
+		function ComputeED(form)
+		{
+			form.factors.value = ""
+			form.example.value = ""
+			var factors = Factorize(form.K.value)
+			form.factors.value = factors
+			var index = factors.lastIndexOf("*")
+			if( index != -1 ) {
+				var e = eval(factors.substring(0,index))
+				var d = eval(factors.substring(index+1,factors.length))		
+				form.example.value = e + "*" + d
+			}
+			return ""
+		}
+
+	//----------------------------------------------------------------------
+	
+		function CheckED(form)
+		{
+			var temp = ""
+			var e = form.e.value
+			var d = form.d.value
+			var r = form.r.value
+			var N = form.N.value
+			
+			temp += "      e   = " + e + "\n"
+			temp += "      d   = " + d + "\n"
+			temp += "      N   = " + N + "\n"
+			temp += "      phi   = " + r + "\n"
+			temp += "      e*d = " + eval(e*d) + "\n"
+			temp += "e*d mod r = " + eval((e*d)%r) + "\n"
+
+			if( GCD(e,N) == 1 ) 
+				temp += "e and N are relatively prime\n"
+			else
+				temp += "e and N are not relatively prime; gcd(e,N) = " + GCD(e,N) + "\n"
+
+			if( GCD(d,N) == 1 ) 
+				temp += "d and N are relatively prime\n"
+			else
+				temp += "d and N are not relatively prime; gcd(d,N) = " + GCD(d,N) + "\n"
+
+			if( GCD(e,r) == 1 ) 
+				temp += "e and phi are relatively prime\n"
+			else
+				temp += "e and phi are not relatively prime; gcd(e,r) = " + GCD(e,r) + "\n"
+
+			if( GCD(d,r) == 1 ) 
+				temp += "d and phi are relatively prime\n"
+			else
+				temp += "d and phi are not relatively prime; gcd(d,r) = " + GCD(d,r) + "\n"
+
+			form.checker.value = temp
+			return ""
+		}
+
+		function encrypt(form)
+		{
+			var e = form.e.value
+			// var d = form.d.value
+			var N = form.N.value
+			var M //= form.Msg.value
+			var s = form.Message.value
+			var blocksize = 0
+			var max = 255
+			while( max<N && max < MAX_INT ) {
+				max = 1001*max
+				blocksize++
+			}
+
+			var i=0
+			var j
+			var t
+			M = ""
+			while(i<s.length) {
+				for(j=0; j<blocksize && i<s.length; j++) {	
+					t = s.charCodeAt(i)
+					// add leading 0 as necessary so blocks have uniform size
+					if( t<100 )
+						t = "0" + t
+					M += t
+					i++
+				}
+			M += " "
+			}
+			form.Msg.value = M
+			
+			t = ""
+			var m
+			i=0
+			while( i<M.length ) {
+				m = M.substr(i,3*blocksize)
+				// remove leading 0 if necessary so JavaScript doesn't get confused
+				// when it tries to understand the number
+				while( m.substr(0,1)=="0" ) m = m.substr(1,m.length-1)
+				i += 1 + parseInt(3*blocksize)
+				t += PowerMod(parseInt(m),e,N) + " "
+			}
+			
+			form.Cipher.value = t
+		}
+
+		function decrypt(form)
+		{
+			var e // = form.e.value
+			var d = form.d.value
+			var N = form.N.value
+			var M //= form.Msg.value
+//			var s = form.Message.value
+//			var blocksize = 0
+			
+//			form.Cipher.value = t
+			
+			var C = form.Cipher2.value
+			t = ""
+/*			var pos
+			i=0
+			while( C.length>0 ) {
+				pos = C.indexOf(" ")
+				m = C.substr(0,pos)
+				// Skip over whitespace
+				i = 1 + pos
+				while( i < C.length && (C[i]<"0" || C[i]>"9") )
+				  i++ 
+				C = C.substring(i,C.length)
+				t += PowerMod(parseInt(m),d,N) + " "
+			}
+			form.Decipher.value = t
+*/
+
+			while( C[C.length-1]==" " )
+				C = C.substring(0,C.length-1)
+			
+			var re = /\s+/
+			var codeList = new Array
+			codeList = C.split(re)
+					
+			for(i=0;i<codeList.length;i++)
+				t += PowerMod(parseInt(codeList[i]),d,N) + " "
+				
+			form.Decipher.value = t
+			
+			i=0
+			M = ""
+			var width
+			while(t.length>0) {
+				pos = t.indexOf(" ")
+				m = t.substr(0,pos)
+
+				while( m.length>0 ) {
+					if( m.length % 3 == 0 )
+						width = 3
+					else
+						width = 2
+						
+					s = m.substr(0,width)
+				// remove leading 0 if necessary so JavaScript doesn't get confused
+				// when it tries to understand the number
+				while( s[0]=="0" ) s = s.substr(1,s.length-1)
+					M += unescape( Hex(s) )
+					m = m.substring(width,m.length)
+				}
+				
+				i = 1 + pos
+				t = t.substring(pos+1,t.length)
+			}
+
+			form.DecodedMsg.value = M
+		}
+
+	// end hiding from uneducated browsers -->
+</script>
+	</script>
+</head>
+<body>
+	<div class="well">
+		<h1><center>RSA Encrypt Decrypt | Ngelu COOOOX</center></h1>
+	</div>
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-8">
+				<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3>Mencari Kunci</h3>
+				</div>
+				<div class="panel-body">
+					<form action="" method="POST">
+						<h4>Step 1. Tentukan nilai bilangan prima p dan q, p!=q </h4>
+
+					    <P><B>p</B> <INPUT TYPE="text" class="form-control" NAME="p" VALUE="" SIZE=15>
+					    <P><B>q</B> <INPUT TYPE="text" class="form-control" NAME="q" VALUE="" SIZE=15>
+
+					    <div class="form-group">
+						    <INPUT TYPE="button" class="btn btn-primary" NAME="pqNr" VALUE="Set p, q" onclick="ComputeNq(this.form)">
+					    </div>
+					    
+					    <HR>
+					    
+					    <b>N</b> adalah nilai modulus yang digunakan (parameter sekuriti) <br>
+					    <b>phi</b> merupakan nilai fungsi euler <br><br>
+					    
+					    <P><B>N = p*q</B> <INPUT TYPE="text" class="form-control" NAME="N" VALUE="" SIZE=15>
+					    <P><B>phi = (p-1)*(q-1)</B><INPUT TYPE="text" class="form-control" NAME="r" VALUE="" SIZE=15>
+					    <P><B>Opsi (1 mod phi):</B> <TEXTAREA NAME="ed" class="form-control" ROWS=4 COLS=60 ></TEXTAREA>
+
+					    <HR>
+    
+					    <h4>Step 2. Cari sebuah bilangan yang sama dengan 1 mod phi yang bisa difaktorkan:</h4>
+
+					    
+					    <P><B>K <INPUT TYPE="text" class="form-control" NAME="K" VALUE="" SIZE=15></B>
+					    
+					    <P>Masukkan nilai kandidat <B>K</B> dalam kotak, lalu klik tombol ini untuk memfaktorkannya: 
+					    <B><INPUT TYPE="button" NAME="ed2" class="btn btn-primary" VALUE="Factor K" onclick="ComputeEZ(this.form)"></B>
+					    
+					    <HR>
+					    
+					    <P><B>Faktor dari K: <INPUT TYPE="text" class="form-control" NAME="factors" VALUE="" SIZE=25></B>
+					      
+					    
+					    <HR>
+					     <h4>Step 3. Cari 2 bilangan e dan d dimana e*d = 1 mod phi dan prima terhadap N (FPB(e, phi) =1) :</h4> 
+					    <P>Pakai hasil faktorisasi <B>K</B> diatas, untuk nilai
+					    <B>e</B> dan <B>d</B>. <br>
+					    <p><b>e</b>: public exponent (encryption key)</p>   
+					    <p><b>d</b>: private exponent (decryption key)</p>   
+
+					    <P><B>e <INPUT TYPE="text" class="form-control" NAME="e" VALUE="" SIZE=15></B>
+					    <P><B>d <INPUT TYPE="text" class="form-control" NAME="d" VALUE="" SIZE=15></B><br>
+					    <INPUT TYPE="button" class="btn btn-primary" NAME="ed3" VALUE="Check e & d" onclick="CheckED(this.form)">
+					    <P><B>Result:</B> <TEXTAREA NAME="checker" class="form-control" ROWS=9 COLS=60 ></TEXTAREA>
+					</form>
+				</div>
+			</div>
+			</div>
+			<div class="col-sm-4">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3>Cek Bilangan Prima</h3>
+					</div>
+					<div class="panel-body">
+						<form name="form">
+						<div class="form-group">
+							<label for="">Masukkan Bilangan</label>
+							<input type="text" name="number" class="form-control">
+						</div>
+						<div class="form-group">
+							<input type="button" class="btn btn-primary" value="Check" onClick="calculate(this.form)">
+							<input type="reset" class="btn btn-warning" value="Reset">
+						</div>
+						</form>
+						<p id="result"></p>
+						<p id="result2"></p>
+					</div>
+				</div>
+			
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4>Enkripsi</h4>
+					</div>
+					<div class="panel-body">
+					<form action="" method="POST">
+						<b>Modulus: N </b> <input TYPE="text" class="form-control" name="N" value="" /><br>
+						<b>Encryption Key: e </b><input TYPE="text" class="form-control" name="e" value="" />
+						<hr>
+						<b>Plaintext Message to encode:<br /><textarea NAME="Message" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea>
+            			<br />
+            			<input TYPE="button" NAME="ed4" class="btn btn-primary" VALUE="Encrypt" onClick="encrypt(this.form)" />
+            			<hr>
+            			<b> Plaintext Message in numeric form:<br />
+           				<textarea NAME="Msg" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea>
+            			</b>
+            			<hr>
+            			<b>Encrypted Message in numeric form:</b> <br />
+           				 <textarea NAME="Cipher" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea>
+					</form>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4>Enkripsi</h4>
+					</div>
+					<div class="panel-body">
+					<form action="" method="POST">
+						<b>Modulus: N </b> <input TYPE="text" class="form-control" name="N" value="" /><br>
+						<b>Decryption Key: d </b><input TYPE="text" class="form-control" NAME="d" VALUE="" size=25 />
+						<hr>
+						<b>Ciphertext Message in numeric form:<br /><textarea NAME="Cipher2" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea></b>
+            			<br />
+            			<input TYPE="button" class="btn btn-primary" NAME="ed42" VALUE="Decrypt" onClick="decrypt(this.form)" />
+            			<hr>
+            			<b> Decrypted Message in numeric form:</b> <br />
+			            <b> 
+			            <textarea NAME="Decipher" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea>
+			            </b> 
+            			<hr>
+            			<b>Decrypted Message in text form:</b><br />
+			            <b> 
+			            <textarea NAME="DecodedMsg" class="form-control" value="" rows=4 cols=60 WRAP="VIRTUAL"></textarea>
+			            </b>
+					</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
